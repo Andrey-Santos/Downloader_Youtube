@@ -27,6 +27,9 @@ def download_files(urls, extension):
             yt.streams.filter(progressive=True, file_extension=extension).order_by('resolution').desc().first().download()
 
         status_text.set("Download concluído!")
+    else:
+        status_text.set("Favor Inserir Link válido!")
+
 
     
 if __name__ == "__main__":
@@ -50,7 +53,7 @@ if __name__ == "__main__":
     file_extension = tk.OptionMenu(window, selected_option, "mp4", "avi", "mp3")
     file_extension.grid(row=3, column=2, sticky="ew", pady=10)
 
-    button_download = tk.Button(window, text="Baixar", command=lambda: download_files(field_urls.get(), file_extension.get()))
+    button_download = tk.Button(window, text="Baixar", command=lambda: download_files(field_urls.get(), selected_option.get()))
     button_download.grid(row=4, column=2, sticky="ew", pady=(0, 10))
 
     status_text = tk.StringVar()
