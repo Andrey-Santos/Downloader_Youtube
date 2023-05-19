@@ -62,4 +62,4 @@ if __name__ == "__main__":
     status_label = tk.Label(window, textvariable=status_text)
     status_label.grid(row=5, column=2, sticky="n", pady=(0, 0))
 
-    window.mainloop()
+    window.mainloop()               
