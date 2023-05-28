@@ -23,6 +23,8 @@ def download_files(urls, extension):
             # Remover o arquivo de vídeo original
             clip.close()
             os.remove(video_path)
+        elif extension == "mp3":
+            yt.streams.filter(progressive=True, only_audio=True).get_audio_only().download()
         else:
             yt.streams.filter(progressive=True, file_extension=extension).order_by('resolution').desc().first().download()
 
