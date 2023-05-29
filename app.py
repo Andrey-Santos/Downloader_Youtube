@@ -1,37 +1,46 @@
 import os
+import threading
 import tkinter as tk
 from pytube import YouTube
 from moviepy.editor import VideoFileClip
 
 def download_files(urls, extension):
-    if urls != "":
-        yt = YouTube(urls) 
-        status_text.set("Download Iniciado!")
-        window.update()
-
-        if extension == "avi":
-            stream = yt.streams.filter(progressive=True, file_extension="mp4").order_by('resolution').desc().first()
-            video_path = stream.download()
-                 
-            # Converter para AVI usando moviepy
-            output_path = video_path.replace(".mp4", ".avi")
-            clip = VideoFileClip(video_path)
-            status_text.set("Converção Iniciada!")
-            window.update()
-            clip.write_videofile(output_path, codec='libxvid')
-
-            # Remover o arquivo de vídeo original
-            clip.close()
-            os.remove(video_path)
-        elif extension == "mp3":
-            yt.streams.filter(progressive=True, only_audio=True).get_audio_only().download()
-        else:
-            yt.streams.filter(progressive=True, file_extension=extension).order_by('resolution').desc().first().download()
-
-        status_text.set("Download concluído!")
-    else:
+    if urls == "":
         status_text.set("Favor Inserir Link válido!")
+        return
+    
+    yt = YouTube(urls) 
+    status_text.set("Download Iniciado!")
+    window.update()
 
+    if extension == "mp4":
+        yt.streams.filter(progressive=True, file_extension=extension).order_by('resolution').desc().first().download
+        
+    elif extension == "mp3":
+        stream = yt.streams.filter(only_audio=True).first()
+        stream.download(output_path=".")
+
+        # Renomeia o arquivo para o título do vídeo
+        default_filename = stream.default_filename
+        os.rename(default_filename, f"{yt.title}.mp3")
+        
+    else:
+        stream = yt.streams.filter(progressive=True, file_extension="mp4").order_by('resolution').desc().first()
+        video_path = stream.download()    
+        # Converter para AVI usando moviepy
+        output_path = video_path.replace(".mp4", ".avi")
+        clip = VideoFileClip(video_path)
+        status_text.set("Converção Iniciada!")
+        window.update()
+        clip.write_videofile(output_path, codec='libxvid')
+
+        # Remover o arquivo de vídeo original
+        clip.close()
+        os.remove(video_path)
+        
+
+    status_text.set("Download concluído!")       
+    window.update()
 
     
 if __name__ == "__main__":
