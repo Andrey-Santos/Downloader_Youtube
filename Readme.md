@@ -24,7 +24,7 @@ python app.py
 
 1. Digite os links dos vídeos que deseja baixar na caixa de texto "Links para download".
 2. Selecione a extensão desejada no menu suspenso "Formato do arquivo".
-3. Clique no botão "Baixar" para iniciar o download e, se necessário, a conversão para AVI.
+3. Clique no botão "Baixar" para iniciar o download e, se necessário, a conversão para vob.
 4. O status do download será exibido na parte inferior da janela.
 
 ## Observações

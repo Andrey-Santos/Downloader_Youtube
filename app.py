@@ -1,48 +1,66 @@
-import os
-import threading
+import subprocess
 import tkinter as tk
-from pytube import YouTube
-from moviepy.editor import VideoFileClip
+import os
+from yt_dlp import YoutubeDL
 
 def download_files(urls, extension):
-    if urls == "":
-        status_text.set("Favor Inserir Link válido!")
-        return
+    try:
+        if urls == "":
+            status_text.set("Favor Inserir Link válido!")
+            return
+
+        ydl_opts = {
+            'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
+            'outtmpl': '%(title)s.%(ext)s',
+        }
+        
+        with YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(urls, download=False)
+            video_url = info['formats'][0]['url']
+            title = info['title']
+
+            status_text.set("Download Iniciado!")
+            window.update()
+
+            if extension == "mp4":
+                ydl.download([urls])
+                
+            elif extension == "mp3":
+                ydl_opts['format'] = 'bestaudio/best'
+                ydl_opts['postprocessors'] = [{
+                    'key': 'FFmpegExtractAudio',
+                    'preferredcodec': 'mp3',
+                    'preferredquality': '192',
+                }]
+                ydl.download([urls])
+
+            else:
+                ydl.download([urls])
+                input_file = f"{title}.mp4"
+                output_file = f"{title}.vob"
+
+                # Define as opções de conversão
+                options = [
+                    '-i', input_file,
+                    '-target', 'ntsc-dvd',
+                    '-q:v', '0',
+                    '-q:a', '0',
+                    output_file
+                ]
+
+                status_text.set("Conversão Iniciada!")
+                window.update()
+                # Executa o comando ffmpeg
+                subprocess.call(['ffmpeg'] + options)
+                # Remove o arquivo original
+                os.remove(input_file)
+
+            status_text.set("Download concluído!")       
+            window.update()
     
-    yt = YouTube(urls) 
-    status_text.set("Download Iniciado!")
-    window.update()
+    except Exception as e:
+        status_text.set(f"Erro: {str(e)}")
 
-    if extension == "mp4":
-        yt.streams.filter(progressive=True, file_extension=extension).order_by('resolution').desc().first().download
-        
-    elif extension == "mp3":
-        stream = yt.streams.filter(only_audio=True).first()
-        stream.download(output_path=".")
-
-        # Renomeia o arquivo para o título do vídeo
-        default_filename = stream.default_filename
-        os.rename(default_filename, f"{yt.title}.mp3")
-        
-    else:
-        stream = yt.streams.filter(progressive=True, file_extension="mp4").order_by('resolution').desc().first()
-        video_path = stream.download()    
-        # Converter para AVI usando moviepy
-        output_path = video_path.replace(".mp4", ".avi")
-        clip = VideoFileClip(video_path)
-        status_text.set("Converção Iniciada!")
-        window.update()
-        clip.write_videofile(output_path, codec='libxvid')
-
-        # Remover o arquivo de vídeo original
-        clip.close()
-        os.remove(video_path)
-        
-
-    status_text.set("Download concluído!")       
-    window.update()
-
-    
 if __name__ == "__main__":
     window = tk.Tk()
     window.title("Drey Downloader")
@@ -61,7 +79,7 @@ if __name__ == "__main__":
     selected_option = tk.StringVar(window)
     selected_option.set("mp4")  # Define a opção padrão selecionada
 
-    file_extension = tk.OptionMenu(window, selected_option, "mp4", "avi", "mp3")
+    file_extension = tk.OptionMenu(window, selected_option, "mp4", "vob", "mp3")
     file_extension.grid(row=3, column=2, sticky="ew", pady=10)
 
     button_download = tk.Button(window, text="Baixar", command=lambda: download_files(field_urls.get(), selected_option.get()))
@@ -73,4 +91,4 @@ if __name__ == "__main__":
     status_label = tk.Label(window, textvariable=status_text)
     status_label.grid(row=5, column=2, sticky="n", pady=(0, 0))
 
-    window.mainloop()               
+    window.mainloop()
